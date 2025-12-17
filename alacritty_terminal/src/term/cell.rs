@@ -221,6 +221,7 @@ impl Cell {
     }
 }
 
+
 impl GridCell for Cell {
     #[inline]
     fn is_empty(&self) -> bool {
