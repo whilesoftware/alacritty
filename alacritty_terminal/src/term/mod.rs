@@ -50,6 +50,54 @@ const KEYBOARD_MODE_STACK_MAX_DEPTH: usize = TITLE_STACK_MAX_DEPTH;
 /// Default tab interval, corresponding to terminfo `it` value.
 const INITIAL_TABSTOPS: usize = 8;
 
+/// Unicode codepoints that should be treated as fullwidth when overrides are enabled.
+#[cfg(feature = "headless_wcwidth_override")]
+const WCWIDTH_OVERRIDE_WIDE: &[u32] = &[
+    0x1F979, // 🥹 (teary-eyed emoji)
+];
+
+/// Resolve the display width for a character, applying optional overrides.
+///
+/// # Arguments
+/// - `c`: The Unicode scalar value to measure.
+///
+/// # Returns
+/// The display width for the character, if known.
+///
+/// # Panics
+/// None.
+fn cell_width(c: char) -> Option<usize> {
+    #[cfg(feature = "headless_wcwidth_override")]
+    {
+        // Honor overrides for known problematic codepoints.
+        if let Some(width) = wcwidth_override(c) {
+            return Some(width);
+        }
+    }
+    // Fall back to the standard Unicode width implementation.
+    c.width()
+}
+
+/// Provide manual width overrides for known problematic codepoints.
+///
+/// # Arguments
+/// - `c`: The Unicode scalar value to check.
+///
+/// # Returns
+/// The overridden width, if a match exists.
+///
+/// # Panics
+/// None.
+#[cfg(feature = "headless_wcwidth_override")]
+fn wcwidth_override(c: char) -> Option<usize> {
+    let codepoint = c as u32;
+    // Treat listed codepoints as fullwidth.
+    if WCWIDTH_OVERRIDE_WIDE.contains(&codepoint) {
+        return Some(2);
+    }
+    None
+}
+
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct TermMode: u32 {
@@ -1061,7 +1109,7 @@ impl<T: EventListener> Handler for Term<T> {
     #[inline(never)]
     fn input(&mut self, c: char) {
         // Number of cells the char will occupy.
-        let width = match c.width() {
+        let width = match cell_width(c) {
             Some(width) => width,
             None => return,
         };
@@ -2470,7 +2518,12 @@ pub mod test {
         let lines: Vec<&str> = content.split('\n').collect();
         let num_cols = lines
             .iter()
-            .map(|line| line.chars().filter(|c| *c != '\r').map(|c| c.width().unwrap()).sum())
+            .map(|line| {
+                line.chars()
+                    .filter(|c| *c != '\r')
+                    .map(|c| cell_width(c).unwrap())
+                    .sum()
+            })
             .max()
             .unwrap_or(0);
 
@@ -2490,7 +2543,7 @@ pub mod test {
                 term.grid[line][Column(index)].c = c;
 
                 // Handle fullwidth characters.
-                let width = c.width().unwrap();
+                let width = cell_width(c).unwrap();
                 if width == 2 {
                     term.grid[line][Column(index)].flags.insert(Flags::WIDE_CHAR);
                     term.grid[line][Column(index + 1)].flags.insert(Flags::WIDE_CHAR_SPACER);
