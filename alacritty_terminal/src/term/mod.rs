@@ -50,13 +50,7 @@ const KEYBOARD_MODE_STACK_MAX_DEPTH: usize = TITLE_STACK_MAX_DEPTH;
 /// Default tab interval, corresponding to terminfo `it` value.
 const INITIAL_TABSTOPS: usize = 8;
 
-/// Unicode codepoints that should be treated as fullwidth when overrides are enabled.
-#[cfg(feature = "headless_wcwidth_override")]
-const WCWIDTH_OVERRIDE_WIDE: &[u32] = &[
-    0x1F979, // 🥹 (teary-eyed emoji)
-];
-
-/// Resolve the display width for a character, applying optional overrides.
+/// Resolve the display width for a character using Unicode Width rules.
 ///
 /// # Arguments
 /// - `c`: The Unicode scalar value to measure.
@@ -67,35 +61,8 @@ const WCWIDTH_OVERRIDE_WIDE: &[u32] = &[
 /// # Panics
 /// None.
 fn cell_width(c: char) -> Option<usize> {
-    #[cfg(feature = "headless_wcwidth_override")]
-    {
-        // Honor overrides for known problematic codepoints.
-        if let Some(width) = wcwidth_override(c) {
-            return Some(width);
-        }
-    }
-    // Fall back to the standard Unicode width implementation.
+    // Delegate to the unicode-width crate for canonical width handling.
     c.width()
-}
-
-/// Provide manual width overrides for known problematic codepoints.
-///
-/// # Arguments
-/// - `c`: The Unicode scalar value to check.
-///
-/// # Returns
-/// The overridden width, if a match exists.
-///
-/// # Panics
-/// None.
-#[cfg(feature = "headless_wcwidth_override")]
-fn wcwidth_override(c: char) -> Option<usize> {
-    let codepoint = c as u32;
-    // Treat listed codepoints as fullwidth.
-    if WCWIDTH_OVERRIDE_WIDE.contains(&codepoint) {
-        return Some(2);
-    }
-    None
 }
 
 bitflags! {
@@ -2570,6 +2537,20 @@ mod tests {
     use crate::term::cell::{Cell, Flags};
     use crate::term::test::TermSize;
     use crate::vte::ansi::{self, CharsetIndex, Handler, StandardCharset};
+
+    /// Validate that emoji width uses the canonical Unicode width table.
+    ///
+    /// # Returns
+    /// None.
+    ///
+    /// # Panics
+    /// Panics if the width is not treated as fullwidth.
+    #[test]
+    fn width_for_face_holding_back_tears_is_fullwidth() {
+        // U+1F979 should be fullwidth in the Unicode width tables.
+        let width = cell_width('\u{1F979}');
+        assert_eq!(width, Some(2));
+    }
 
     #[test]
     fn scroll_display_page_up() {
