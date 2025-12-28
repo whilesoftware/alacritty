@@ -3,7 +3,7 @@ use std::fmt::{self, Debug, Formatter};
 use std::sync::Arc;
 
 use crate::term::ClipboardType;
-use crate::vte::ansi::{CursorIcon, CursorShape, Rgb};
+use crate::vte::ansi::{cursor_icon::CursorIcon, CursorShape, Rgb};
 
 /// Terminal event.
 ///

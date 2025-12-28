@@ -21,8 +21,8 @@ use crate::term::cell::{Cell, Flags, LineLength};
 use crate::term::color::Colors;
 use crate::vi_mode::{ViModeCursor, ViMotion};
 use crate::vte::ansi::{
-    self, Attr, CharsetIndex, Color, CursorIcon, CursorShape, CursorStyle, Handler, Hyperlink,
-    KeyboardModes, KeyboardModesApplyBehavior, NamedColor, NamedMode, NamedPrivateMode,
+    self, cursor_icon::CursorIcon, Attr, CharsetIndex, Color, CursorShape, CursorStyle, Handler,
+    Hyperlink, KeyboardModes, KeyboardModesApplyBehavior, NamedColor, NamedMode, NamedPrivateMode,
     PrivateMode, Rgb, StandardCharset,
 };
 
