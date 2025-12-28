@@ -3,7 +3,7 @@ use std::fmt::{self, Debug, Formatter};
 use std::sync::Arc;
 
 use crate::term::ClipboardType;
-use crate::vte::ansi::Rgb;
+use crate::vte::ansi::{CursorIcon, CursorShape, Rgb};
 
 /// Terminal event.
 ///
@@ -44,6 +44,12 @@ pub enum Event {
     /// Cursor blinking state has changed.
     CursorBlinkingChange,
 
+    /// Mouse cursor icon update request.
+    MouseCursorIcon(CursorIcon),
+
+    /// Cursor shape update request.
+    CursorShape(CursorShape),
+
     /// New terminal content available.
     Wakeup,
 
@@ -67,6 +73,8 @@ impl Debug for Event {
             Event::PtyWrite(text) => write!(f, "PtyWrite({text})"),
             Event::Title(title) => write!(f, "Title({title})"),
             Event::CursorBlinkingChange => write!(f, "CursorBlinkingChange"),
+            Event::MouseCursorIcon(icon) => write!(f, "MouseCursorIcon({icon:?})"),
+            Event::CursorShape(shape) => write!(f, "CursorShape({shape:?})"),
             Event::MouseCursorDirty => write!(f, "MouseCursorDirty"),
             Event::ResetTitle => write!(f, "ResetTitle"),
             Event::Wakeup => write!(f, "Wakeup"),

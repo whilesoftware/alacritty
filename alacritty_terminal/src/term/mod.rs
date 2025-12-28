@@ -21,9 +21,9 @@ use crate::term::cell::{Cell, Flags, LineLength};
 use crate::term::color::Colors;
 use crate::vi_mode::{ViModeCursor, ViMotion};
 use crate::vte::ansi::{
-    self, Attr, CharsetIndex, Color, CursorShape, CursorStyle, Handler, Hyperlink, KeyboardModes,
-    KeyboardModesApplyBehavior, NamedColor, NamedMode, NamedPrivateMode, PrivateMode, Rgb,
-    StandardCharset,
+    self, Attr, CharsetIndex, Color, CursorIcon, CursorShape, CursorStyle, Handler, Hyperlink,
+    KeyboardModes, KeyboardModesApplyBehavior, NamedColor, NamedMode, NamedPrivateMode,
+    PrivateMode, Rgb, StandardCharset,
 };
 
 pub mod cell;
@@ -2230,6 +2230,13 @@ impl<T: EventListener> Handler for Term<T> {
 
         let style = self.cursor_style.get_or_insert(self.config.default_cursor_style);
         style.shape = shape;
+        self.event_proxy.send_event(Event::CursorShape(shape));
+    }
+
+    #[inline]
+    fn set_mouse_cursor_icon(&mut self, icon: CursorIcon) {
+        trace!("Setting mouse cursor icon {icon:?}");
+        self.event_proxy.send_event(Event::MouseCursorIcon(icon));
     }
 
     #[inline]
