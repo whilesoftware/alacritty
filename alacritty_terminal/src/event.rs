@@ -50,6 +50,9 @@ pub enum Event {
     /// Cursor shape update request.
     CursorShape(CursorShape),
 
+    /// Alternate screen buffer toggle state.
+    BufferTargetChanged(bool),
+
     /// New terminal content available.
     Wakeup,
 
@@ -75,6 +78,7 @@ impl Debug for Event {
             Event::CursorBlinkingChange => write!(f, "CursorBlinkingChange"),
             Event::MouseCursorIcon(icon) => write!(f, "MouseCursorIcon({icon:?})"),
             Event::CursorShape(shape) => write!(f, "CursorShape({shape:?})"),
+            Event::BufferTargetChanged(active) => write!(f, "BufferTargetChanged({active})"),
             Event::MouseCursorDirty => write!(f, "MouseCursorDirty"),
             Event::ResetTitle => write!(f, "ResetTitle"),
             Event::Wakeup => write!(f, "Wakeup"),

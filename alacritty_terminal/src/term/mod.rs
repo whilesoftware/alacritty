@@ -745,6 +745,8 @@ impl<T> Term<T> {
 
         mem::swap(&mut self.grid, &mut self.inactive_grid);
         self.mode ^= TermMode::ALT_SCREEN;
+        self.event_proxy
+            .send_event(Event::BufferTargetChanged(self.mode.contains(TermMode::ALT_SCREEN)));
         self.selection = None;
         self.mark_fully_damaged();
     }
